@@ -191,7 +191,9 @@ class TexTable:
         #     raise ValueError("Too many values")
 
         prep = prep or (lambda x: x)
-        _values = [str(prep(val)) for val in values]
+        _values = [
+            str(prep(val)) if val is not None else self.empty_value for val in values
+        ]
 
         # Fill in empty values
         if start > 0:
