@@ -65,7 +65,7 @@ Output:
 
 Result:
 
-<p align="center"><img src="./images/simple.jpg" alt="simple" width=300></p>
+<p align="center"><img src="./.images/simple.jpg" alt="simple" width=300></p>
 
 ## A little more styled example
 
@@ -136,5 +136,5 @@ Output:
 
 Result:
 
-<p align="center"><img src="./images/complex.jpg" alt="simple" width=480></p>
+<p align="center"><img src="./.images/complex.jpg" alt="simple" width=480></p>
 
