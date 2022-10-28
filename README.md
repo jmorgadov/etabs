@@ -138,3 +138,20 @@ Result:
 
 <p align="center"><img src="./.images/complex.jpg" alt="simple" width=480></p>
 
+## Latex packages
+
+According the commands you use, some packages may need to be added to the
+document for the correct rendering of the table.
+
+To see the dependencies for a given table you can use de `render_deps` method:
+
+```python
+# following the example from the last section
+print(table.render_deps())
+```
+
+Output:
+```
+\usepackage{multirow}
+\usepackage{booktabs}
+```
