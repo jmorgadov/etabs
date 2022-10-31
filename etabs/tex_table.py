@@ -62,7 +62,6 @@ class TexTable:
         self._dependencies: Set[str] = set()
         self._rules: List[Tuple[int, str]] = []
         self._lines: List[Tuple[int, str]] = []
-        # self._col_style = col_style
 
     @property
     def _col_count(self) -> int:
@@ -187,8 +186,6 @@ class TexTable:
             A function to apply to each value before adding it to the
             table, by default None. (None means the identity function)
         """
-        # if start + len(values) > self._col_count:
-        #     raise ValueError("Too many values")
 
         prep = prep or (lambda x: x)
         _values = [
@@ -453,6 +450,11 @@ class TexTableSlice:
         if self._value is not None:
             return self._value
         raise ValueError("Table slice has multiple values")
+
+    def set_value(self, value: str):
+        """Set the value for each cell of the slice."""
+        for cell in self:
+            cell.raw_value = value
 
     def __iter__(self):
         for i in range(self.row, self.to_row + 1):
