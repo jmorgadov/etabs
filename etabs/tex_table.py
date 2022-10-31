@@ -456,6 +456,11 @@ class TexTableSlice:
         for cell in self:
             cell.raw_value = value
 
+    def for_each(self, func: Callable[[str], Any]):
+        """Apply a function to the value of each cell of the slice."""
+        for cell in self:
+            cell.raw_value = func(cell.raw_value)
+
     def __iter__(self):
         for i in range(self.row, self.to_row + 1):
             for j in range(self.col, self.to_col + 1):
