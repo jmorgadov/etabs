@@ -384,6 +384,7 @@ class TexTable:
             rows[r_idx] = tline + " " + rows[r_idx]
 
         # Add rules
+        self._rules.sort(key=lambda x: x[0])
         for added, rule in enumerate(self._rules):
             i, tex = rule
             if not 0 <= i < len(rows):
