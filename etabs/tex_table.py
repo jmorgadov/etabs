@@ -45,18 +45,24 @@ class TexTable:
         self,
         centered: bool = True,
         caption: Union[str, None] = None,
+        caption_after_table: bool = False,
         position: str = "h!",
         star: bool = False,
         empty_value: str = "",
+        label: Union[str, None] = None,
+        cmd: str = "figure",
     ):
 
         self.col_styles: List[str] = []
         self.seps: List[str] = []
         self.centered = centered
         self.caption = caption
+        self.caption_after_table = caption_after_table
         self.position = position
         self.star = star
         self.empty_value = empty_value
+        self.label = label
+        self.cmd = cmd
         self.table: List[List[TexTableCell]] = []
 
         self._dependencies: Set[str] = set()
@@ -433,19 +439,25 @@ class TexTable:
                 raise ValueError(f"Invalid rule index {i}")
             rows.insert(i + added, tex)
 
+        caption_line = r"\caption{" + self.caption + "}" if self.caption else ""
+        if self.label is not None:
+            if self.caption is None:
+                raise ValueError("Cannot have a label without a caption")
+            caption_line += r"\label{" + self.label + "}"
+
         code_lines = _texcmd(
-            cmd="figure" + ("*" if self.star else ""),
+            cmd=self.cmd + ("*" if self.star else ""),
             opts=self.position,
             body=_flat(
                 [
                     r"\centering" if self.centered else "",
-                    r"\caption{" + self.caption + "}" if self.caption else "",
-                    r"\vspace{0.5em}",
+                    caption_line if not self.caption_after_table else "",
                     _texcmd(
                         cmd="tabular",
                         args=self._str_col_sty,
                         body=rows,
                     ),
+                    caption_line if self.caption_after_table else "",
                 ]
             ),
         )
