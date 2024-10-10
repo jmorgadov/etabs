@@ -64,12 +64,12 @@ class TexTable:
         self._lines: List[Tuple[int, str]] = []
 
     @property
-    def _col_count(self) -> int:
+    def col_count(self) -> int:
         """Returns the number of columns in the table."""
         return len(self.col_styles)
 
     @property
-    def _row_count(self) -> int:
+    def row_count(self) -> int:
         """Returns the number of rows in the table."""
         return len(self.table)
 
@@ -104,7 +104,7 @@ class TexTable:
 
         if isinstance(j, slice):
             col = j.start if j.start is not None else 0
-            to_col = (j.stop - 1) if j.stop is not None else self._col_count - 1
+            to_col = (j.stop - 1) if j.stop is not None else self.col_count - 1
         elif isinstance(j, int):
             col = to_col = j
         else:
@@ -161,7 +161,7 @@ class TexTable:
         """
         self._depends_on("booktabs")
 
-        to_col = self._col_count - 1 if to_col is None else to_col
+        to_col = self.col_count - 1 if to_col is None else to_col
         row = len(self.table) if row is None else row
 
         line = r"\cline{" + str(from_col + 1) + "-" + str(to_col + 1) + "} "
@@ -195,10 +195,10 @@ class TexTable:
         # Fill in empty values
         if start > 0:
             _values = [self.empty_value] * start + _values
-        if len(_values) < self._col_count:
-            _values += [self.empty_value] * (self._col_count - len(_values))
-        elif len(_values) > self._col_count:
-            for _ in range(len(_values) - self._col_count):
+        if len(_values) < self.col_count:
+            _values += [self.empty_value] * (self.col_count - len(_values))
+        elif len(_values) > self.col_count:
+            for _ in range(len(_values) - self.col_count):
                 self.add_col()
 
         # Add the row
@@ -245,10 +245,10 @@ class TexTable:
         # Fill in empty values
         if start > 0:
             _values = [self.empty_value] * start + _values
-        if len(_values) < self._row_count:
-            _values += [self.empty_value] * (self._row_count - len(_values))
-        elif len(_values) > self._row_count:
-            for _ in range(len(_values) - self._row_count):
+        if len(_values) < self.row_count:
+            _values += [self.empty_value] * (self.row_count - len(_values))
+        elif len(_values) > self.row_count:
+            for _ in range(len(_values) - self.row_count):
                 self.add_row()
 
         # Add the column
@@ -295,7 +295,7 @@ class TexTable:
         """
         if not 0 <= row < len(self.table):
             raise ValueError(f"Invalid row index: {row}")
-        if not 0 <= col < self._col_count:
+        if not 0 <= col < self.col_count:
             raise ValueError(f"Invalid column index: {col}")
 
         if width is None and to_col is None and height is None and to_row is None:
@@ -331,7 +331,7 @@ class TexTable:
 
         if not row <= to_row < len(self.table):
             raise ValueError(f"Invalid height: {height}")
-        if not col <= to_col < self._col_count:
+        if not col <= to_col < self.col_count:
             raise ValueError(f"Invalid width: {width}")
 
         for _row in range(row, to_row + 1):
