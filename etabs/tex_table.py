@@ -478,3 +478,21 @@ class TexTableSlice:
         for i in range(self.row, self.to_row + 1):
             for j in range(self.col, self.to_col + 1):
                 self.table.table[i][j].italic = val
+
+    def set_background_color(self, val: str):
+        """Set the background color of the slice."""
+        self.table._depends_on("colortbl")
+        self.table._depends_on("xcolor")
+
+        for i in range(self.row, self.to_row + 1):
+            for j in range(self.col, self.to_col + 1):
+                self.table.table[i][j].background_color = val
+
+    def set_rotation(self, degree: float, options: str = "origin=c"):
+        """Set the rotation of the slice."""
+        self.table._depends_on("graphicx")
+
+        for i in range(self.row, self.to_row + 1):
+            for j in range(self.col, self.to_col + 1):
+                self.table.table[i][j].rotate_degree = str(degree)
+                self.table.table[i][j].rotate_options = options
