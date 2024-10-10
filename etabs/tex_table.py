@@ -167,6 +167,48 @@ class TexTable:
         line = r"\cline{" + str(from_col + 1) + "-" + str(to_col + 1) + "} "
         return self._lines.append((row, line.strip()))
 
+    def add_cmidrule(
+        self,
+        row: Union[int, None],
+        from_col: int = 0,
+        to_col: Union[int, None] = None,
+        options: str = "lr",
+    ):
+        """
+        Add a mid rule in top of a row.
+
+        Parameters
+        ----------
+        row : int, optional
+            The row to add the line to, by default None.
+
+            If None, the line is placed on top of the last row added to
+            the table.
+        from_col : int, optional
+            The column to start the line at, by default 0.
+        to_col : int, optional
+            The column to end the line at, by default None.
+
+            If None, the line is drawn to the end of the row.
+        options : str, optional
+            The options for the line, by default "lr".
+        """
+        self._depends_on("booktabs")
+
+        to_col = self.col_count - 1 if to_col is None else to_col
+        row = len(self.table) if row is None else row
+
+        line = (
+            r"\cmidrule("
+            + options
+            + "){"
+            + str(from_col + 1)
+            + "-"
+            + str(to_col + 1)
+            + "} "
+        )
+        return self._lines.append((row, line.strip()))
+
     def add_row(
         self,
         *values: Union[Any, None],
