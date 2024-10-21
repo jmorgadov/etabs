@@ -45,18 +45,24 @@ class TexTable:
         self,
         centered: bool = True,
         caption: Union[str, None] = None,
+        caption_after_table: bool = False,
         position: str = "h!",
         star: bool = False,
         empty_value: str = "",
+        label: Union[str, None] = None,
+        cmd: str = "figure",
     ):
 
         self.col_styles: List[str] = []
         self.seps: List[str] = []
         self.centered = centered
         self.caption = caption
+        self.caption_after_table = caption_after_table
         self.position = position
         self.star = star
         self.empty_value = empty_value
+        self.label = label
+        self.cmd = cmd
         self.table: List[List[TexTableCell]] = []
 
         self._dependencies: Set[str] = set()
@@ -64,12 +70,12 @@ class TexTable:
         self._lines: List[Tuple[int, str]] = []
 
     @property
-    def _col_count(self) -> int:
+    def col_count(self) -> int:
         """Returns the number of columns in the table."""
         return len(self.col_styles)
 
     @property
-    def _row_count(self) -> int:
+    def row_count(self) -> int:
         """Returns the number of rows in the table."""
         return len(self.table)
 
@@ -104,7 +110,7 @@ class TexTable:
 
         if isinstance(j, slice):
             col = j.start if j.start is not None else 0
-            to_col = (j.stop - 1) if j.stop is not None else self._col_count - 1
+            to_col = (j.stop - 1) if j.stop is not None else self.col_count - 1
         elif isinstance(j, int):
             col = to_col = j
         else:
@@ -161,10 +167,52 @@ class TexTable:
         """
         self._depends_on("booktabs")
 
-        to_col = self._col_count - 1 if to_col is None else to_col
+        to_col = self.col_count - 1 if to_col is None else to_col
         row = len(self.table) if row is None else row
 
         line = r"\cline{" + str(from_col + 1) + "-" + str(to_col + 1) + "} "
+        return self._lines.append((row, line.strip()))
+
+    def add_cmidrule(
+        self,
+        row: Union[int, None],
+        from_col: int = 0,
+        to_col: Union[int, None] = None,
+        options: str = "lr",
+    ):
+        """
+        Add a mid rule in top of a row.
+
+        Parameters
+        ----------
+        row : int, optional
+            The row to add the line to, by default None.
+
+            If None, the line is placed on top of the last row added to
+            the table.
+        from_col : int, optional
+            The column to start the line at, by default 0.
+        to_col : int, optional
+            The column to end the line at, by default None.
+
+            If None, the line is drawn to the end of the row.
+        options : str, optional
+            The options for the line, by default "lr".
+        """
+        self._depends_on("booktabs")
+
+        to_col = self.col_count - 1 if to_col is None else to_col
+        row = len(self.table) if row is None else row
+
+        line = (
+            r"\cmidrule("
+            + options
+            + "){"
+            + str(from_col + 1)
+            + "-"
+            + str(to_col + 1)
+            + "} "
+        )
         return self._lines.append((row, line.strip()))
 
     def add_row(
@@ -195,10 +243,10 @@ class TexTable:
         # Fill in empty values
         if start > 0:
             _values = [self.empty_value] * start + _values
-        if len(_values) < self._col_count:
-            _values += [self.empty_value] * (self._col_count - len(_values))
-        elif len(_values) > self._col_count:
-            for _ in range(len(_values) - self._col_count):
+        if len(_values) < self.col_count:
+            _values += [self.empty_value] * (self.col_count - len(_values))
+        elif len(_values) > self.col_count:
+            for _ in range(len(_values) - self.col_count):
                 self.add_col()
 
         # Add the row
@@ -245,10 +293,10 @@ class TexTable:
         # Fill in empty values
         if start > 0:
             _values = [self.empty_value] * start + _values
-        if len(_values) < self._row_count:
-            _values += [self.empty_value] * (self._row_count - len(_values))
-        elif len(_values) > self._row_count:
-            for _ in range(len(_values) - self._row_count):
+        if len(_values) < self.row_count:
+            _values += [self.empty_value] * (self.row_count - len(_values))
+        elif len(_values) > self.row_count:
+            for _ in range(len(_values) - self.row_count):
                 self.add_row()
 
         # Add the column
@@ -295,7 +343,7 @@ class TexTable:
         """
         if not 0 <= row < len(self.table):
             raise ValueError(f"Invalid row index: {row}")
-        if not 0 <= col < self._col_count:
+        if not 0 <= col < self.col_count:
             raise ValueError(f"Invalid column index: {col}")
 
         if width is None and to_col is None and height is None and to_row is None:
@@ -331,7 +379,7 @@ class TexTable:
 
         if not row <= to_row < len(self.table):
             raise ValueError(f"Invalid height: {height}")
-        if not col <= to_col < self._col_count:
+        if not col <= to_col < self.col_count:
             raise ValueError(f"Invalid width: {width}")
 
         for _row in range(row, to_row + 1):
@@ -384,25 +432,32 @@ class TexTable:
             rows[r_idx] = tline + " " + rows[r_idx]
 
         # Add rules
+        self._rules.sort(key=lambda x: x[0])
         for added, rule in enumerate(self._rules):
             i, tex = rule
             if not 0 <= i < len(rows):
                 raise ValueError(f"Invalid rule index {i}")
             rows.insert(i + added, tex)
 
+        caption_line = r"\caption{" + self.caption + "}" if self.caption else ""
+        if self.label is not None:
+            if self.caption is None:
+                raise ValueError("Cannot have a label without a caption")
+            caption_line += r"\label{" + self.label + "}"
+
         code_lines = _texcmd(
-            cmd="figure" + ("*" if self.star else ""),
+            cmd=self.cmd + ("*" if self.star else ""),
             opts=self.position,
             body=_flat(
                 [
                     r"\centering" if self.centered else "",
-                    r"\caption{" + self.caption + "}" if self.caption else "",
-                    r"\vspace{0.5em}",
+                    caption_line if not self.caption_after_table else "",
                     _texcmd(
                         cmd="tabular",
                         args=self._str_col_sty,
                         body=rows,
                     ),
+                    caption_line if self.caption_after_table else "",
                 ]
             ),
         )
@@ -477,3 +532,21 @@ class TexTableSlice:
         for i in range(self.row, self.to_row + 1):
             for j in range(self.col, self.to_col + 1):
                 self.table.table[i][j].italic = val
+
+    def set_background_color(self, val: str):
+        """Set the background color of the slice."""
+        self.table._depends_on("colortbl")
+        self.table._depends_on("xcolor")
+
+        for i in range(self.row, self.to_row + 1):
+            for j in range(self.col, self.to_col + 1):
+                self.table.table[i][j].background_color = val
+
+    def set_rotation(self, degree: float, options: str = "origin=c"):
+        """Set the rotation of the slice."""
+        self.table._depends_on("graphicx")
+
+        for i in range(self.row, self.to_row + 1):
+            for j in range(self.col, self.to_col + 1):
+                self.table.table[i][j].rotate_degree = str(degree)
+                self.table.table[i][j].rotate_options = options

@@ -18,6 +18,9 @@ class TexTableCell:
         self.width = width
         self.height = height
         self.bold, self.italic = False, False
+        self.background_color = None
+        self.rotate_degree = None
+        self.rotate_options = "c"
         self.l_sep, self.r_sep = l_sep, r_sep
 
     def bounds(self) -> Tuple[int, int, int, int]:
@@ -37,6 +40,15 @@ class TexTableCell:
             ans = r"\textbf{" + ans + "}"
         if self.italic:
             ans = r"\textit{" + ans + "}"
+        if self.background_color is not None:
+            ans += r"\cellcolor{" + self.background_color + "}"
+        if self.rotate_degree is not None:
+            prefix = (
+                r"\rotatebox[" + self.rotate_options + "]"
+                if self.rotate_options
+                else r"\rotatebox"
+            )
+            ans = prefix + "{" + self.rotate_degree + "}{" + ans + "}"
         return ans
 
     def __getitem__(self, idx) -> str:
