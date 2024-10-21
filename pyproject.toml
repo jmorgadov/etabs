@@ -1,6 +1,6 @@
 [project]
 name = "etabs"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python library for rendering latex tables in an easy way"
 readme = "README.md"
 authors = [
@@ -32,7 +32,7 @@ target-version = ["py37"]
 max-line-length = 88
 
 [tool.bumpver]
-current_version = "0.1.0"
+current_version = "0.2.0"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit = false
 tag = false
